@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Clone</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #121212; color: #fff; padding-bottom: 110px; }
+    header { padding: 20px 16px 10px; position: sticky; top: 0; background: #121212; z-index: 10; }
+    h1 { font-size: 22px; margin-bottom: 12px; font-weight: 700; color: #1db954; }
+    .search-bar { display: flex; gap: 8px; }
+    input { flex: 1; padding: 12px 16px; border-radius: 25px; border: none; background: #242424; color: #fff; font-size: 15px; outline: none; }
+    input::placeholder { color: #b3b3b3; }
+    button { padding: 0 20px; border-radius: 25px; border: none; background: #1db954; color: #000; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .song-list { padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .song-card { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 6px; background: transparent; cursor: pointer; }
+    .song-card:active { background: #282828; }
+    .song-card img { width: 52px; height: 52px; border-radius: 4px; object-fit: cover; }
+    .song-info { flex: 1; overflow: hidden; }
+    .song-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .song-artist { font-size: 13px; color: #b3b3b3; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #181818; border-top: 1px solid #282828; padding: 10px 16px; display: none; flex-direction: column; gap: 8px; }
+    .now-playing { display: flex; align-items: center; gap: 12px; }
+    .now-playing img { width: 44px; height: 44px; border-radius: 4px; }
+    .now-info { flex: 1; overflow: hidden; }
+    .now-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .now-artist { font-size: 12px; color: #b3b3b3; }
+    audio { width: 100%; height: 32px; filter: invert(100%) hue-rotate(180deg); }
+    .status-msg { text-align: center; color: #b3b3b3; margin-top: 40px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My Music</h1>
+    <div class="search-bar">
+      <input type="text" id="query" placeholder="Gaane ka naam likhein...">
+      <button onclick="searchMusic()">Search</button>
+    </div>
+  </header>
+  <div id="results" class="song-list">
+    <p class="status-msg">Gaane ka naam search karein</p>
+  </div>
+  <div class="player-bar" id="playerBar">
+    <div class="now-playing">
+      <img id="trackThumb" src="" alt="Album Art">
+      <div class="now-info">
+        <div class="now-title" id="trackTitle">Playing...</div>
+        <div class="now-artist" id="trackArtist">Artist</div>
+      </div>
+    </div>
+    <audio id="audioPlayer" controls autoplay></audio>
+  </div>
+  <script>
+    const API_BASE = "https://jiosaavn-api-vxpi.onrender.com";
+    async function searchMusic() {
+      const q = document.getElementById('query').value.trim();
+      const list = document.getElementById('results');
+      if (!q) return;
+      list.innerHTML = '<p class="status-msg">Searching JioSaavn...</p>';
+      try {
+        const res = await fetch(`${API_BASE}/api/search/songs?query=${encodeURIComponent(q)}`);
+        const json = await res.json();
+        const songs = json.data?.results || json.results || [];
+        list.innerHTML = '';
+        if (songs.length === 0) {
+          list.innerHTML = '<p class="status-msg">Koi gaana nahi mila!</p>';
+          return;
+        }
+        songs.forEach(song => {
+          const thumb = Array.isArray(song.image) ? (song.image[1]?.url || song.image[0]?.url) : (song.image || '');
+          let audioUrl = '';
+          if (Array.isArray(song.downloadUrl)) {
+            audioUrl = song.downloadUrl[song.downloadUrl.length - 1]?.url || song.downloadUrl[0]?.url;
+          } else {
+            audioUrl = song.downloadUrl || '';
+          }
+          const primaryArtists = Array.isArray(song.artists?.primary) 
+            ? song.artists.primary.map(a => a.name).join(', ') 
+            : (song.primaryArtists || song.singers || 'JioSaavn');
+          const div = document.createElement('div');
+          div.className = 'song-card';
+          div.onclick = () => playSong(song.name || song.title, primaryArtists, thumb, audioUrl);
+          div.innerHTML = `
+            <img src="${thumb || 'https://via.placeholder.com/50'}" alt="art">
+            <div class="song-info">
+              <div class="song-title">${song.name || song.title}</div>
+              <div class="song-artist">${primaryArtists}</div>
+            </div>
+          `;
+          list.appendChild(div);
+        });
+      } catch (err) {
+        list.innerHTML = '<p class="status-msg" style="color:#ff5555;">Server wait le raha hai, dobara try karein.</p>';
+      }
+    }
+    function playSong(title, artist, thumb, streamUrl) {
+      if (!streamUrl) return;
+      const playerBar = document.getElementById('playerBar');
+      const player = document.getElementById('audioPlayer');
+      document.getElementById('trackTitle').innerText = title;
+      document.getElementById('trackArtist').innerText = artist;
+      document.getElementById('trackThumb').src = thumb || '';
+      playerBar.style.display = 'flex';
+      player.src = streamUrl;
+      player.play();
+    }
+  </script>
+</body>
+</html>

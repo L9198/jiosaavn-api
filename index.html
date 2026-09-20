@@ -3,113 +3,183 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spotify Music</title>
+  <title>Soft Music</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #121212; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    body { background-color: #0b0b0f; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
     
-    #searchView { display: flex; flex-direction: column; height: 100%; overflow-y: auto; padding-bottom: 90px; }
-    header { padding: 16px; position: sticky; top: 0; background: #121212; z-index: 10; }
-    .header-title { font-size: 22px; font-weight: 700; color: #1db954; margin-bottom: 12px; }
-    .search-box { display: flex; gap: 8px; }
-    input { flex: 1; padding: 12px 16px; border-radius: 25px; border: none; background: #242424; color: #fff; font-size: 15px; outline: none; }
-    .search-box button { padding: 0 20px; border-radius: 25px; border: none; background: #1db954; color: #000; font-weight: 700; cursor: pointer; }
-    .song-list { padding: 10px 16px; display: flex; flex-direction: column; gap: 6px; }
-    .song-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; cursor: pointer; }
-    .song-item:active { background: #222; }
-    .song-item img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
+    /* Top Header */
+    .top-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+    .pill { background: #22232a; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #eee; cursor: pointer; }
+    .pill.active { background: #00f2fe; color: #000; }
+
+    /* Main Content Area */
+    .main-content { flex: 1; overflow-y: auto; padding: 10px 16px 100px; }
+    
+    /* Search Bar */
+    .search-container { margin: 10px 0 16px; }
+    .search-box { display: flex; align-items: center; background: #1c1d24; border-radius: 12px; padding: 0 14px; }
+    .search-box i { color: #888; font-size: 15px; }
+    .search-box input { flex: 1; padding: 12px 10px; background: none; border: none; color: #fff; font-size: 15px; outline: none; }
+
+    /* Featured Banner */
+    .hero-banner { background: linear-gradient(135deg, #3c2a21 0%, #1a161f 100%); border-radius: 16px; padding: 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .hero-text .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: 700; margin-bottom: 6px; }
+    .hero-text h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .hero-text p { font-size: 12px; color: #bbb; max-width: 200px; line-height: 1.3; }
+    .hero-play { width: 46px; height: 46px; border-radius: 50%; background: #00e5ff; color: #000; display: flex; align-items: center; justify-content: center; font-size: 18px; border: none; cursor: pointer; flex-shrink: 0; }
+
+    /* Section Titles */
+    .section-title { font-size: 17px; font-weight: 700; margin: 18px 0 12px; color: #fff; }
+
+    /* Horizontal Scroll Cards */
+    .scroll-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+    .scroll-row::-webkit-scrollbar { display: none; }
+    .card { width: 140px; flex-shrink: 0; cursor: pointer; }
+    .card img { width: 140px; height: 140px; border-radius: 12px; object-fit: cover; background: #222; }
+    .card-title { font-size: 14px; font-weight: 600; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-desc { font-size: 12px; color: #8c8c9e; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Song Results List */
+    .song-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #181920; cursor: pointer; }
+    .song-item img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
     .song-details { flex: 1; overflow: hidden; }
     .song-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .song-artist { font-size: 13px; color: #b3b3b3; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .status-info { text-align: center; color: #888; margin-top: 50px; font-size: 14px; }
+    .song-artist { font-size: 13px; color: #8c8c9e; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    #miniPlayer { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #282828; display: none; align-items: center; padding: 0 16px; border-top: 1px solid #333; cursor: pointer; z-index: 20; }
-    #miniThumb { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; }
+    /* Mini Player */
+    #miniPlayer { position: fixed; bottom: 58px; left: 10px; right: 10px; height: 58px; background: #1c1d24; border-radius: 10px; display: none; align-items: center; padding: 0 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 40; cursor: pointer; }
+    #miniThumb { width: 42px; height: 42px; border-radius: 6px; object-fit: cover; }
     .mini-info { flex: 1; margin: 0 12px; overflow: hidden; }
     .mini-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-artist { font-size: 12px; color: #b3b3b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-btn { font-size: 20px; color: #fff; background: none; border: none; padding: 10px; cursor: pointer; }
+    .mini-artist { font-size: 12px; color: #8c8c9e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-btn { font-size: 18px; color: #00e5ff; background: none; border: none; padding: 10px; cursor: pointer; }
 
-    #fullPlayer { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #3d2433 0%, #121212 100%); z-index: 50; display: none; flex-direction: column; justify-content: space-between; padding: 24px 20px 30px; }
-    .fp-header { display: flex; justify-content: space-between; align-items: center; }
-    .fp-header button { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
-    .fp-header span { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #ccc; font-weight: 600; }
-    .fp-cover-box { width: 100%; display: flex; justify-content: center; align-items: center; margin: 20px 0; }
-    .fp-cover { width: 85vw; height: 85vw; max-width: 330px; max-height: 330px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); object-fit: cover; }
-    .fp-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .fp-text { flex: 1; overflow: hidden; padding-right: 15px; }
-    .fp-title { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .fp-artist { font-size: 14px; color: #b3b3b3; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .fp-heart { font-size: 22px; color: #1db954; cursor: pointer; }
+    /* Bottom Nav Bar */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 56px; background: #0b0b0f; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #1c1d24; z-index: 30; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #777; font-size: 11px; text-decoration: none; cursor: pointer; }
+    .nav-item i { font-size: 18px; }
+    .nav-item.active { color: #00e5ff; }
 
-    .progress-container { width: 100%; }
-    .progress-bar { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: #4f4f4f; outline: none; }
-    .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; cursor: pointer; }
-    .time-stamps { display: flex; justify-content: space-between; font-size: 12px; color: #b3b3b3; margin-top: 6px; }
-
-    .fp-controls { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 10px; }
-    .fp-controls button { background: none; border: none; color: #b3b3b3; font-size: 20px; cursor: pointer; }
-    .fp-controls button.active { color: #1db954; }
-    .play-btn-circle { width: 64px; height: 64px; border-radius: 50%; background: #fff !important; color: #000 !important; display: flex; align-items: center; justify-content: center; font-size: 24px !important; }
+    /* Full Screen Player */
+    #fullPlayer { position: fixed; inset: 0; background: linear-gradient(180deg, #1f1b29 0%, #0b0b0f 100%); z-index: 60; display: none; flex-direction: column; justify-content: space-between; padding: 24px 22px 36px; }
+    .fp-top { display: flex; justify-content: space-between; align-items: center; }
+    .fp-top button { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+    .fp-top span { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+    .fp-art-wrap { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+    .fp-art { width: 80vw; height: 80vw; max-width: 320px; max-height: 320px; border-radius: 16px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    .fp-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .fp-titles { flex: 1; overflow: hidden; }
+    .fp-song { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fp-artist { font-size: 14px; color: #8c8c9e; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .seek-wrap input { width: 100%; height: 4px; -webkit-appearance: none; background: #333; border-radius: 2px; outline: none; }
+    .seek-wrap input::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #00e5ff; cursor: pointer; }
+    .time-box { display: flex; justify-content: space-between; font-size: 12px; color: #777; margin-top: 8px; }
+    
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+    .controls button { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+    .play-circle { width: 62px; height: 62px; border-radius: 50%; background: #00e5ff !important; color: #000 !important; display: flex; align-items: center; justify-content: center; font-size: 22px !important; }
   </style>
 </head>
 <body>
 
-  <div id="searchView">
-    <header>
-      <div class="header-title"><i class="fab fa-spotify"></i> Spotify Player</div>
+  <!-- Top Header -->
+  <div class="top-header">
+    <div class="avatar"><i class="fas fa-user"></i></div>
+    <div class="pill active">Music</div>
+    <div class="pill">Podcasts</div>
+  </div>
+
+  <div class="main-content">
+    <!-- Quick Fast Search -->
+    <div class="search-container">
       <div class="search-box">
-        <input type="text" id="query" placeholder="Search songs, artists...">
-        <button onclick="searchMusic()"><i class="fas fa-search"></i></button>
+        <i class="fas fa-search"></i>
+        <input type="text" id="query" placeholder="Search songs, artists..." onkeypress="handleKey(event)">
       </div>
-    </header>
-    <div id="results" class="song-list">
-      <p class="status-info">Gaane ka naam search karke play karein</p>
+    </div>
+
+    <!-- Search Results Container -->
+    <div id="resultsList" style="display: none;">
+      <h3 class="section-title">Search Results</h3>
+      <div id="results"></div>
+    </div>
+
+    <!-- Default Home View -->
+    <div id="homeSections">
+      <!-- Big Hero Banner -->
+      <div class="hero-banner">
+        <div class="hero-text">
+          <div class="tag">Station</div>
+          <h2>My Soundtrack</h2>
+          <p>Top hits, trending Hindi songs & artists</p>
+        </div>
+        <button class="hero-play" onclick="playTrending()"><i class="fas fa-play"></i></button>
+      </div>
+
+      <!-- Albums Row -->
+      <h3 class="section-title">Albums based on artists you like</h3>
+      <div class="scroll-row" id="albumsRow"></div>
+
+      <!-- Playlists Row -->
+      <h3 class="section-title">Playlists based on artists you like</h3>
+      <div class="scroll-row" id="playlistsRow"></div>
     </div>
   </div>
 
+  <!-- Mini Player -->
   <div id="miniPlayer" onclick="openFullPlayer()">
     <img id="miniThumb" src="" alt="">
     <div class="mini-info">
-      <div class="mini-title" id="miniTitle">Title</div>
+      <div class="mini-title" id="miniTitle">Song Title</div>
       <div class="mini-artist" id="miniArtist">Artist</div>
     </div>
     <button class="mini-btn" onclick="togglePlay(event)"><i id="miniPlayIcon" class="fas fa-play"></i></button>
   </div>
 
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showHome()"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="nav-item" onclick="focusSearch()"><i class="fas fa-search"></i><span>Find</span></div>
+    <div class="nav-item"><i class="fas fa-bookmark"></i><span>Library</span></div>
+  </div>
+
+  <!-- Full Screen Player -->
   <div id="fullPlayer">
-    <div class="fp-header">
+    <div class="fp-top">
       <button onclick="closeFullPlayer()"><i class="fas fa-chevron-down"></i></button>
-      <span>Playing from Search</span>
+      <span>Now Playing</span>
       <button><i class="fas fa-ellipsis-v"></i></button>
     </div>
 
-    <div class="fp-cover-box">
-      <img id="fpImg" class="fp-cover" src="" alt="Album Cover">
+    <div class="fp-art-wrap">
+      <img id="fpImg" class="fp-art" src="" alt="">
     </div>
 
     <div>
-      <div class="fp-meta">
-        <div class="fp-text">
-          <div class="fp-title" id="fpTitle">Song Title</div>
-          <div class="fp-artist" id="fpArtist">Artist Name</div>
+      <div class="fp-info">
+        <div class="fp-titles">
+          <div class="fp-song" id="fpTitle">Song Title</div>
+          <div class="fp-artist" id="fpArtist">Artist</div>
         </div>
-        <i class="far fa-heart fp-heart"></i>
+        <i class="far fa-heart" style="font-size: 22px; color: #00e5ff;"></i>
       </div>
 
-      <div class="progress-container">
-        <input type="range" id="seekSlider" class="progress-bar" value="0" min="0" max="100" onchange="seekAudio()">
-        <div class="time-stamps">
+      <div class="seek-wrap">
+        <input type="range" id="seekSlider" value="0" min="0" max="100" onchange="seekAudio()">
+        <div class="time-box">
           <span id="currTime">0:00</span>
           <span id="totalTime">0:00</span>
         </div>
       </div>
 
-      <div class="fp-controls">
+      <div class="controls">
         <button onclick="toggleShuffle()"><i id="shuffleBtn" class="fas fa-random"></i></button>
         <button onclick="prevSong()"><i class="fas fa-step-backward"></i></button>
-        <button class="play-btn-circle" onclick="togglePlay()"><i id="mainPlayIcon" class="fas fa-play"></i></button>
+        <button class="play-circle" onclick="togglePlay()"><i id="mainPlayIcon" class="fas fa-play"></i></button>
         <button onclick="nextSong()"><i class="fas fa-step-forward"></i></button>
         <button onclick="toggleLoop()"><i id="loopBtn" class="fas fa-redo"></i></button>
       </div>
@@ -124,23 +194,40 @@
     let playlist = [];
     let currentIndex = 0;
 
+    // Fast quick search on Enter key
+    function handleKey(e) {
+      if (e.key === 'Enter') searchMusic();
+    }
+
+    // Default trending on load
+    window.onload = () => {
+      loadInitialRows();
+    };
+
     async function searchMusic() {
       const q = document.getElementById('query').value.trim();
-      const list = document.getElementById('results');
       if (!q) return;
-      list.innerHTML = '<p class="status-info">Searching songs...</p>';
+      
+      document.getElementById('homeSections').style.display = 'none';
+      const resultsWrap = document.getElementById('resultsList');
+      const list = document.getElementById('results');
+      resultsWrap.style.display = 'block';
+      list.innerHTML = '<p style="color:#888; text-align:center; margin-top:30px;">Searching fast...</p>';
+
       try {
         const res = await fetch(`${API_BASE}/api/search/songs?query=${encodeURIComponent(q)}`);
         const json = await res.json();
         playlist = json.data?.results || json.results || [];
         list.innerHTML = '';
+
         if (!playlist.length) {
-          list.innerHTML = '<p class="status-info">Koi gaana nahi mila!</p>';
+          list.innerHTML = '<p style="color:#888; text-align:center; margin-top:30px;">No songs found.</p>';
           return;
         }
+
         playlist.forEach((song, i) => {
           const thumb = Array.isArray(song.image) ? (song.image[2]?.url || song.image[1]?.url || song.image[0]?.url) : (song.image || '');
-          const artist = Array.isArray(song.artists?.primary) ? song.artists.primary.map(a => a.name).join(', ') : (song.primaryArtists || song.singers || 'JioSaavn');
+          const artist = Array.isArray(song.artists?.primary) ? song.artists.primary.map(a => a.name).join(', ') : (song.primaryArtists || 'Artist');
           const div = document.createElement('div');
           div.className = 'song-item';
           div.onclick = () => loadTrack(i);
@@ -154,8 +241,52 @@
           list.appendChild(div);
         });
       } catch (err) {
-        list.innerHTML = '<p class="status-info" style="color:#ff5555;">Server response wait kar raha hai, thodi der me dobara search karein.</p>';
+        list.innerHTML = '<p style="color:#ff5555; text-align:center;">Server waking up, please tap again in 5 seconds.</p>';
       }
+    }
+
+    async function loadInitialRows() {
+      try {
+        const res = await fetch(`${API_BASE}/api/search/songs?query=Arijit%20Singh`);
+        const json = await res.json();
+        const songs = json.data?.results || json.results || [];
+        
+        const albumsRow = document.getElementById('albumsRow');
+        const playlistsRow = document.getElementById('playlistsRow');
+        
+        songs.slice(0, 6).forEach((s, idx) => {
+          const img = Array.isArray(s.image) ? (s.image[2]?.url || s.image[1]?.url) : s.image;
+          albumsRow.innerHTML += `
+            <div class="card" onclick="playSingleTrack('${encodeURIComponent(JSON.stringify(s))}')">
+              <img src="${img}">
+              <div class="card-title">${s.name || s.title}</div>
+              <div class="card-desc">${s.primaryArtists || 'Top Tracks'}</div>
+            </div>
+          `;
+        });
+
+        songs.slice(6, 12).forEach((s) => {
+          const img = Array.isArray(s.image) ? (s.image[2]?.url || s.image[1]?.url) : s.image;
+          playlistsRow.innerHTML += `
+            <div class="card" onclick="playSingleTrack('${encodeURIComponent(JSON.stringify(s))}')">
+              <img src="${img}">
+              <div class="card-title">${s.name || s.title}</div>
+              <div class="card-desc">${s.language || 'Hindi'} Mix</div>
+            </div>
+          `;
+        });
+      } catch (e) {}
+    }
+
+    function playTrending() {
+      document.getElementById('query').value = 'Trending Hindi';
+      searchMusic();
+    }
+
+    function playSingleTrack(raw) {
+      const song = JSON.parse(decodeURIComponent(raw));
+      playlist = [song];
+      loadTrack(0);
     }
 
     function loadTrack(index) {
@@ -164,7 +295,7 @@
       const song = playlist[index];
       const thumb = Array.isArray(song.image) ? (song.image[2]?.url || song.image[1]?.url || song.image[0]?.url) : (song.image || '');
       let streamUrl = Array.isArray(song.downloadUrl) ? (song.downloadUrl[song.downloadUrl.length - 1]?.url || song.downloadUrl[0]?.url) : song.downloadUrl;
-      const artist = Array.isArray(song.artists?.primary) ? song.artists.primary.map(a => a.name).join(', ') : (song.primaryArtists || song.singers || 'JioSaavn');
+      const artist = Array.isArray(song.artists?.primary) ? song.artists.primary.map(a => a.name).join(', ') : (song.primaryArtists || 'Artist');
       const title = song.name || song.title;
 
       document.getElementById('miniThumb').src = thumb;
@@ -182,11 +313,8 @@
 
     function togglePlay(e) {
       if (e) e.stopPropagation();
-      if (audio.paused) {
-        audio.play();
-      } else {
-        audio.pause();
-      }
+      if (audio.paused) audio.play();
+      else audio.pause();
     }
 
     function nextSong() {
@@ -203,6 +331,16 @@
 
     function closeFullPlayer() {
       document.getElementById('fullPlayer').style.display = 'none';
+    }
+
+    function showHome() {
+      document.getElementById('homeSections').style.display = 'block';
+      document.getElementById('resultsList').style.display = 'none';
+    }
+
+    function focusSearch() {
+      showHome();
+      document.getElementById('query').focus();
     }
 
     audio.onplay = () => {
@@ -241,11 +379,12 @@
 
     function toggleLoop() {
       audio.loop = !audio.loop;
-      document.getElementById('loopBtn').classList.toggle('active', audio.loop);
+      document.getElementById('loopBtn').style.color = audio.loop ? '#00e5ff' : '#fff';
     }
 
     function toggleShuffle() {
-      document.getElementById('shuffleBtn').classList.toggle('active');
+      const btn = document.getElementById('shuffleBtn');
+      btn.style.color = btn.style.color === 'rgb(0, 229, 255)' ? '#fff' : '#00e5ff';
     }
   </script>
 </body>
